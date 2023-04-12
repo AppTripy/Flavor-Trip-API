@@ -2,9 +2,7 @@ from flask import Flask, request, jsonify, make_response
 import bcrypt
 import asyncio
 from prisma import Client
-from flasgger import Swagger , swag_from
-import tracemalloc
-tracemalloc.start()
+from flasgger import Swagger 
 
 
 app = Flask(__name__)
@@ -17,20 +15,32 @@ app.config['SWAGGER'] = {
     "termsOfService": None,
     'version':'0.1',
     'uiversion': 3,
-    'host':'localhost:5000'
 }
 swagger = Swagger(app)
 
+
+
+## Prisma ORM instance
 prisma = Client()
 
 
 
 
 
-
+# Home route
 @app.route('/', methods=['GET'])
-def home():
-    return "Welcome Home"
+def up():
+    """Checks if server is up
+    ---
+    tags: 
+        - Dev
+    responses:
+        200:
+          description: Server up.
+        400:
+          description: Server down.
+    """
+    return make_response(jsonify( {'info':'server ready'} ), 400)
 
 
 
