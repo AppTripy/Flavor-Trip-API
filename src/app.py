@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, make_response
 import bcrypt
-import asyncio
 from prisma import Client
 from flasgger import Swagger 
 from flask_cors import CORS
@@ -8,9 +7,16 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['DEBUG'] = True  ## Makes server reload when changing the code
+
+
+
+# Access to XMLHttpRequest at 'http://127.0.0.1:5000/login' from origin 'http://localhost:19006' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+# Fix the above error --|
 CORS(app)
 
 
+
+## Swagger config
 app.config['SWAGGER'] = {
     'title': 'Flavor Trip API',
     'description':'<div style="color:white;font-size: 30px; font-weight: 900;margin-top:70px;margin-top:50px;background-color:#0284c7;padding:10px 10px;" > Flavor Trip</div>',
@@ -47,7 +53,7 @@ def up():
 
 
 
-# Get list of users route  || FOR DEV MODE ONLY
+# Get list of users || FOR DEV MODE ONLY
 @app.route('/users', methods=['GET'])
 async def users() :
     """Get list of users
@@ -66,11 +72,6 @@ async def users() :
           description: Bad request. Error during handling request
     """
     try : 
-        # val = []
-        # asyncio.run(rr(val))
-        # print(val)
-
-
         await prisma.connect()
         userz = await prisma.users.find_many()
         await prisma.disconnect()
@@ -287,13 +288,6 @@ async def delete() :
 
 
 
-
-async def main() :
-    app.run(host='localhost',port=5000)
-
-
-
 if __name__ == '__main__':
     app.run(port=5000)
-    # asyncio.run(main())
     
