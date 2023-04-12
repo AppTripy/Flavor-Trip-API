@@ -32,6 +32,8 @@ async def users() :
     """Get list of users
     Route for DEV mode only.
     ---
+    tags: 
+        - Dev
     responses:
         200:
           description: Ok
@@ -67,6 +69,38 @@ async def users() :
 # Login route
 @app.route('/login', methods=['POST'])
 async def login():
+    """Log in a user
+    ---
+    tags: 
+        - User
+    parameters:
+        - in: body
+          name: user
+          description: The user to create.
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+            example:
+                username: simo
+                password: Azerty
+              
+    responses:
+        200:
+          description: Log in success/fail
+          content:
+            application/json:
+              schema:
+                type: array
+        400:
+          description: Bad request. Error during handling request
+    """
     try :
         # Get username and password from the request
         username = request.json['username']
@@ -100,6 +134,38 @@ async def login():
 # Signup route
 @app.route('/signup', methods=['POST'])
 async def signup():
+    """Register a user
+    ---
+    tags: 
+        - User
+    parameters:
+        - in: body
+          name: user
+          description: The user to register.
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+            example:
+                username: newuser
+                password: Azerty
+              
+    responses:
+        200:
+          description: Log in success/fail
+          content:
+            application/json:
+              schema:
+                type: array
+        400:
+          description: Bad request. Error during handling request
+    """
     try :
         # Get username and password from the request
         username = request.json['username']
@@ -140,6 +206,38 @@ async def signup():
 
 @app.route('/user/delete', methods=['DELETE'])
 async def delete() :
+    """Delete a user
+    ---
+    tags: 
+        - User
+    parameters:
+        - in: body
+          name: user
+          description: The user to delete.
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+            example:
+                username: newuser
+                password: Azerty
+              
+    responses:
+        200:
+          description: Log in success/fail
+          content:
+            application/json:
+              schema:
+                type: array
+        400:
+          description: Bad request. Error during handling request
+    """
     try :
         username = request.json['username']
         
