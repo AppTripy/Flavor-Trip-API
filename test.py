@@ -19,14 +19,17 @@ try :
     res = requests.post(URL+'/login', data=json.dumps(data) , headers={'Content-Type': 'application/json'})
 
 
+  ## python test.py signup simo
   elif (sys.argv[1]=='signup') :
     data = {"username":sys.argv[2],"password":"azerty"}
     res = requests.post(URL+'/signup', data=json.dumps(data) , headers={'Content-Type': 'application/json'})
 
+  ## python test.py del simo
   elif (sys.argv[1]=='del') :
     data = {"username":sys.argv[2]}
     res = requests.delete(URL+'/user/delete' , data=json.dumps(data) , headers={'Content-Type': 'application/json'} )
 
+  ## python test.py users
   elif (sys.argv[1]=='users') :
     res = requests.get(URL+'/users')
   

@@ -2,26 +2,59 @@ from flask import Flask, request, jsonify, make_response
 import bcrypt
 import asyncio
 from prisma import Client
-
+from flasgger import Swagger , swag_from
+import tracemalloc
+tracemalloc.start()
 
 
 app = Flask(__name__)
 app.config['DEBUG'] = True  ## Makes server reload when changing the code
 
+swagger = Swagger(app)
 
 prisma = Client()
+
+
+
+
+
+
+@app.route('/', methods=['GET'])
+def home():
+    return "Welcome Home"
+
+
+
 
 # Get list of users route  || FOR DEV MODE ONLY
 @app.route('/users', methods=['GET'])
 async def users() :
+    """Get list of users
+    Route for DEV mode only.
+    ---
+    responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+        400:
+          description: Bad request. Error during handling request
+    """
     try : 
+        # val = []
+        # asyncio.run(rr(val))
+        # print(val)
+
+
         await prisma.connect()
         userz = await prisma.users.find_many()
         await prisma.disconnect()
         res = []
         for user in userz :
-            res.append([user.username,user.password])
-        return make_response(jsonify( {'data':res} ), 200)
+            res.append({'username':user.username,'password':user.password})
+        return make_response(jsonify( res ), 200)
     except :
         return make_response(jsonify( {'info':'GET /users error'} ), 400)
 
