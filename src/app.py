@@ -10,6 +10,15 @@ tracemalloc.start()
 app = Flask(__name__)
 app.config['DEBUG'] = True  ## Makes server reload when changing the code
 
+
+app.config['SWAGGER'] = {
+    'title': 'Flavor Trip API',
+    'description':'<div style="color:white;font-size: 30px; font-weight: 900;margin-top:70px;margin-top:50px;background-color:#0284c7;padding:10px 10px;" > Flavor Trip</div>',
+    "termsOfService": None,
+    'version':'0.1',
+    'uiversion': 3,
+    'host':'localhost:5000'
+}
 swagger = Swagger(app)
 
 prisma = Client()
