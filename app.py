@@ -1,80 +1,108 @@
-from flask import Flask, request, jsonify
-import mariadb
-import sys
+from flask import Flask, request, jsonify, make_response
 import bcrypt
+import asyncio
+from prisma import Prisma
+from prisma.models import users
+from prisma import Client
+
+
 
 app = Flask(__name__)
+app.config['DEBUG'] = True  ## Makes server reload when changing the code
 
-# Database configuration
-config = {
-    'host': 'localhost',
-    'port': 3306,
-    'user': 'uroot',
-    'password': 'proot',
-    'database': 'flavor_trip_db'
-}
 
-# Connection to the database
-try:
-    conn = mariadb.connect(**config)
-    cursor = conn.cursor()
+prisma = Client()
 
-    # Define a list of table names to check and create
-    table_names = ['users']
-
-    # Loop through the table names and check if each table exists
-    for table_name in table_names:
-        cursor.execute("SHOW TABLES LIKE %s", (table_name,))
-        result = cursor.fetchone()
-
-        # If the table doesn't exist, create it
-        if not result:
-            cursor.execute(f"CREATE TABLE {table_name} (id INT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255))")
-            conn.commit()
-
-except mariadb.Error as e:
-    print(f"Error connecting to MariaDB: {e}")
-    sys.exit(1)
-
+# Login route
+@app.route('/users', methods=['GET'])
+async def users() :
+    try : 
+        await prisma.connect()
+        userz = await prisma.users.find_many()
+        await prisma.disconnect()
+        res = []
+        for user in userz :
+            res.append([user.username,user.password])
+        return make_response(jsonify( {'data':res} ), 200)
+    except :
+        return make_response(jsonify( {'info':'GET /users error'} ), 400)
 
 
 # Login route
 @app.route('/login', methods=['POST'])
-def login():
-    # Get username and password from the request
-    username = request.json['username']
-    password = request.json['password'].encode('utf-8')
-    
-    # Get hashed password from the database
-    cursor.execute("SELECT password FROM users WHERE username=?", (username,))
-    hashed_password = cursor.fetchone()[0].encode('utf-8')
-    
-    # Check if the password is correct
-    if bcrypt.checkpw(password, hashed_password):
-        return jsonify({'success': True})
-    else:
-        return jsonify({'success': False})
+async def login():
+    try :
+        # Get username and password from the request
+        username = request.json['username']
+        password = request.json['password']
+        
+        # Connect to db
+        await prisma.connect()
+        user = await prisma.users.find_unique(
+            where={
+                'username':username,
+            },
+        )
+        await prisma.disconnect()
+
+        if (user) : ## Exisitng username
+            if (user.password == password) :
+                return make_response(jsonify( {'info':'login success'} ), 200)
+            else :
+                return make_response(jsonify( {'info':'wrong password'} ), 200)
+        else : ## Username don't exist
+            return make_response(jsonify( {'info':'username not found'} ), 200)
+        
+    except :
+        return make_response(jsonify( {'info':'login error'} ), 400)
+
 
 # Signup route
 @app.route('/signup', methods=['POST'])
-def signup():
-    # Get username and password from the request
-    username = request.json['username']
-    password = request.json['password'].encode('utf-8')
-    
-    # Hash the password
-    hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
-    
-    # Insert the user into the database
-    try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
-        conn.commit()
-        return jsonify({'success': True})
-    except mariadb.Error as e:
-        print(f"Error inserting user into database: {e}")
-        conn.rollback()
-        return jsonify({'success': False})
+async def signup():
+    try :
+        # Get username and password from the request
+        username = request.json['username']
+        password = request.json['password']
+        
+        # Connect to db
+        await prisma.connect()
+        userExist = await prisma.users.find_unique(
+            where={
+                'username':username,
+            },
+        )
+        
+        if (userExist) : ## Exisitng username
+            await prisma.disconnect()
+            return make_response(jsonify( {'info':'username exist'} ), 200)
+        else : ## Register username
+            print('New user')
+            newUser = await prisma.users.create(
+                data={
+                    'username': username,
+                    'password': password,
+                },
+            )
+            await prisma.disconnect()
+            return make_response(jsonify( {'info':'register sucess'} ), 200)
+        
+    except Exception as e :
+        print(e)
+        return make_response(jsonify( {'info':'login error'} ), 400)
 
-# Run the app
-if __name__ == '__main__':
+
+
+
+
+async def main() :
+    # Connecting to database here don't work
+    # await prisma.connect()
+    
     app.run()
+
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+    
