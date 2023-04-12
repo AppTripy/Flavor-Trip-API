@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify, make_response
 import bcrypt
 import asyncio
-from prisma import Prisma
-from prisma.models import users
 from prisma import Client
 
 
@@ -13,7 +11,7 @@ app.config['DEBUG'] = True  ## Makes server reload when changing the code
 
 prisma = Client()
 
-# Login route
+# Get list of users route  || FOR DEV MODE ONLY
 @app.route('/users', methods=['GET'])
 async def users() :
     try : 
@@ -26,6 +24,11 @@ async def users() :
         return make_response(jsonify( {'data':res} ), 200)
     except :
         return make_response(jsonify( {'info':'GET /users error'} ), 400)
+
+
+
+
+
 
 
 # Login route
@@ -57,6 +60,10 @@ async def login():
         return make_response(jsonify( {'info':'login error'} ), 400)
 
 
+
+
+
+
 # Signup route
 @app.route('/signup', methods=['POST'])
 async def signup():
@@ -85,11 +92,45 @@ async def signup():
                 },
             )
             await prisma.disconnect()
-            return make_response(jsonify( {'info':'register sucess'} ), 200)
+
+            if (newUser) :
+                return make_response(jsonify( {'info':'register sucess'} ), 200)
+            else :
+                return make_response(jsonify( {'info':'register fail'} ), 200)
         
     except Exception as e :
         print(e)
         return make_response(jsonify( {'info':'login error'} ), 400)
+
+
+
+
+@app.route('/user/delete', methods=['DELETE'])
+async def delete() :
+    try :
+        username = request.json['username']
+        
+        # Connect to db
+        await prisma.connect()
+        userDelete = await prisma.users.delete(
+            where={
+                'username':username,
+            },
+        )
+        await prisma.disconnect()
+
+        if (userDelete) :
+            return make_response(jsonify( {'info':'delete success'} ), 200)
+        else :
+            return make_response(jsonify( {'info':'delete fail'} ), 200)
+
+    except Exception as e :
+        print(e)
+        return make_response(jsonify( {'info':'delete error'} ), 400)
+
+
+
+
 
 
 
