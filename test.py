@@ -32,6 +32,7 @@ try :
   ## python test.py users
   elif (sys.argv[1]=='users') :
     res = requests.get(URL+'/users')
+    
   
   print(res.text)
 

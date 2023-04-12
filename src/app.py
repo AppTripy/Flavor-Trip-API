@@ -3,10 +3,12 @@ import bcrypt
 import asyncio
 from prisma import Client
 from flasgger import Swagger 
+from flask_cors import CORS
 
 
 app = Flask(__name__)
 app.config['DEBUG'] = True  ## Makes server reload when changing the code
+CORS(app)
 
 
 app.config['SWAGGER'] = {
@@ -138,9 +140,9 @@ async def login():
             if (user.password == password) :
                 return make_response(jsonify( {'info':'login success'} ), 200)
             else :
-                return make_response(jsonify( {'info':'wrong password'} ), 200)
+                return make_response(jsonify( {'info':'wrong password'} ), 201)
         else : ## Username don't exist
-            return make_response(jsonify( {'info':'username not found'} ), 200)
+            return make_response(jsonify( {'info':'username not found'} ), 202)
         
     except :
         return make_response(jsonify( {'info':'login error'} ), 400)
@@ -200,7 +202,7 @@ async def signup():
         
         if (userExist) : ## Exisitng username
             await prisma.disconnect()
-            return make_response(jsonify( {'info':'username exist'} ), 200)
+            return make_response(jsonify( {'info':'username exist'} ), 201)
         else : ## Register username
             print('New user')
             newUser = await prisma.users.create(
@@ -214,7 +216,7 @@ async def signup():
             if (newUser) :
                 return make_response(jsonify( {'info':'register sucess'} ), 200)
             else :
-                return make_response(jsonify( {'info':'register fail'} ), 200)
+                return make_response(jsonify( {'info':'register fail'} ), 202)
         
     except Exception as e :
         print(e)
@@ -287,13 +289,11 @@ async def delete() :
 
 
 async def main() :
-    # Connecting to database here don't work
-    # await prisma.connect()
-    
-    app.run()
+    app.run(host='localhost',port=5000)
 
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    app.run(port=5000)
+    # asyncio.run(main())
     
